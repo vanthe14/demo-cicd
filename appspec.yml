@@ -5,7 +5,7 @@ files:
     destination: /var/www/hoclamweb
   - source: /docker/web/httpd.conf
     destination: /etc/httpd/conf/
-    overwrite: true
+    overwrite: yes
 
 hooks:
   BeforeInstall:
@@ -13,6 +13,10 @@ hooks:
       timeout: 300
       runas: root
     - location: scripts/start_server
+      timeout: 300
+      runas: root
+  ApplicationStart:
+    - location: scripts/update_httpd
       timeout: 300
       runas: root
   ApplicationStop:
