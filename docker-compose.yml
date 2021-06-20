@@ -1,0 +1,13 @@
+version: "3"
+services:
+    web:
+        container_name: "hoclamweb_web"
+        build: .
+        privileged:
+        ports:
+            - "800:80"
+            - "443:443"
+        expose:
+            - "80"
+#        volumes:
+#          - .:/var/www/hoclamweb
