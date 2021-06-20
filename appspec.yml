@@ -3,7 +3,8 @@ os: linux
 files:
   - source: /
     destination: /var/www/hoclamweb
-
+  - source: /docker/web/httpd.conf
+    destination: /etc/httpd/conf.d
 hooks:
   BeforeInstall:
     - location: scripts/install_dependencies
