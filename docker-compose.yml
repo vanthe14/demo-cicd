@@ -3,7 +3,7 @@ services:
     web:
         container_name: "hoclamweb_web"
         build: .
-        privileged:
+        privileged: true
         ports:
             - "800:80"
             - "443:443"

@@ -2,7 +2,7 @@ FROM centos:7
 
 RUN yum update -y
 RUN yum install httpd -y
-COPY ./docker/web/httpd.conf /etc/httpd/conf/httpd.conf
+COPY ./docker/web/sample_app.conf /etc/httpd/conf.d
 
 # Install PHP
 RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
