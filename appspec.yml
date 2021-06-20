@@ -2,9 +2,9 @@ version: 0.0
 os: linux
 files:
   - source: /
-    destination: /var/www/html
-  - source: /docker/web/sample_app.conf
-    destination: /etc/httpd/conf.d
+    destination: /var/www/hoclamweb
+  - source: /docker/web/httpd.conf
+    destination: /etc/httpd/conf
 hooks:
   BeforeInstall:
     - location: scripts/install_dependencies
