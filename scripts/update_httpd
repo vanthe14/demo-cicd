@@ -1,2 +1,2 @@
 #!/bin/bash
-cp ./docker/web/httpd.conf /etc/httpd/conf/httpd.conf
+cp /docker/web/httpd.conf /etc/httpd/conf/httpd.conf
