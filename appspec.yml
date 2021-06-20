@@ -3,7 +3,7 @@ os: linux
 files:
   - source: /
     destination: /var/www/hoclamweb
-  - source: /docker/web/httpd.conf
+  - source: /docker/web/sample_app.conf
     destination: /etc/httpd/conf.d
 hooks:
   BeforeInstall:
