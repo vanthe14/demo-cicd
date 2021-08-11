@@ -29,7 +29,10 @@ jobs:
 
             # run tests!
 #            - run: vendor/squizlabs/php_codesniffer/bin/phpcs --ignore=config,vendor,bootstrap/cache/,storage,database,*.js,*.css,public/index.php,*.blade.php,server.php --standard=PSR12 ./
-            - run: vendor/squizlabs/php_codesniffer/bin/phpcs --ignore=config,vendor,bootstrap/cache/,storage,database,*.js,*.css,public/index.php,*.blade.php,server.php --standard=rulesets/phpcs.xml $(git diff --name-only $target_branch..$CIRCLE_BRANCH -- '*.php')
+            - run: |
+                    if [ $(git diff --name-only origin/developer...HEAD -- '*.php' ]; then
+                        vendor/squizlabs/php_codesniffer/bin/phpcs --ignore=config,vendor,bootstrap/cache/,storage,database,*.js,*.css,public/index.php,*.blade.php,server.php --standard=rulesets/phpcs.xml $(git diff --name-only origin/developer...HEAD -- '*.php')
+                    fi
             # - run: sudo ~/.composer/vendor/bin/phpcs --ignore=vendor,bootstrap/cache/,storage,database,*.js,*.css,public/index.php,*.blade.php --standard=Framgia ./
             # - run: php -r "file_exists('.env') || copy('.env.example', '.env');"
             # - run: php artisan key:generate
