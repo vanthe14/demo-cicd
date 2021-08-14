@@ -1,35 +1,72 @@
-# PHP CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-php/ for more details
-#
 version: 2
 jobs:
     build:
+        working_directory: ~/HotStartup/peraichi
+        parallelism: 20
+        shell: /bin/bash --login
+        environment:
+            TZ: Asia/Tokyo
+            CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
+            CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
         docker:
-            - image: circleci/php:7.3-node-browsers
-
-        working_directory: ~/repo
-
+            - image: circleci/php:5.6.40-cli-stretch-node-browsers
+            - image: circleci/mysql:5.6.45
+              environment:
+                  MYSQL_ALLOW_EMPTY_PASSWORD: yes
+                  MYSQL_DATABASE: circle_default
+                  MYSQL_ROOT_HOST: "%"
+                  MYSQL_HOST: 127.0.0.1
+                  MYSQL_USER: circleci
+                  MYSQL_PASSWORD: circleci
+              command: [--character-set-server=utf8, --collation-server=utf8_general_ci]
         steps:
             - checkout
-            - run: composer global require "squizlabs/php_codesniffer=*"
-            # Download and cache dependencies
+            - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
+            - run: sudo apt-get update -y && sudo apt-get install -y libjpeg62-turbo-dev libmcrypt-dev libpng-dev libxml2-dev mysql-client
+            - run: sudo -E docker-php-ext-configure gd --with-jpeg-dir=/usr/include/
+            - run: sudo -E docker-php-ext-install exif gd mbstring mcrypt pdo pdo_mysql xml
+            - run: sudo -E pecl install apcu memcache-2.2.7.tgz xdebug
+            - run: echo -e "[Date]\ndate.timezone = Asia/Tokyo" | sudo tee /usr/local/etc/php/php.ini > /dev/null
+            - run: echo -e "memory_limit = 2048M" | sudo tee /usr/local/etc/php/conf.d/memory.ini > /dev/null
+            - run: php -i
             - restore_cache:
                   keys:
-                      - v1-dependencies-{{ checksum "composer.json" }}
-                      # fallback to using the latest cache if no exact match is found
-                      - v1-dependencies-
-
-            - run: composer install -n --prefer-dist
-
+                      - composer-{{ checksum "composer.lock" }}
+            - restore_cache:
+                  keys:
+                      - composer-{{ checksum "composer.lock" }}
+            - run: composer install --dev
+            - run: cp circleci/core.php app/Config/core.php
+            - run: cp circleci/database.php app/Config/database.php
+            - run: cp circleci/email.php app/Config/email.php
+            - run: cp circleci/bootstrap.php app/Config/bootstrap.php
+            - run: cd app/webroot && npm install && npm run release
             - save_cache:
+                  key: composer-{{ checksum "composer.lock" }}
                   paths:
-                      - ./vendor
-                  key: v1-dependencies-{{ checksum "composer.json" }}
-
-            # run tests!
-#            - run: vendor/squizlabs/php_codesniffer/bin/phpcs --ignore=config,vendor,bootstrap/cache/,storage,database,*.js,*.css,public/index.php,*.blade.php,server.php --standard=PSR12 ./
-            - run: |
-                    if [ $(git diff --name-only origin/developer...HEAD -- '*.php') ]; then
-                        vendor/squizlabs/php_codesniffer/bin/phpcs --ignore=config,vendor,bootstrap/cache/,storage,database,*.js,*.css,public/index.php,*.blade.php,server.php --standard=rulesets/phpcs.xml $(git diff --name-only origin/developer...HEAD -- '*.php')
-                    fi
+                      - vendor
+                      - ~/.composer/cache
+            - save_cache:
+                  key: node_modules-{{ checksum "app/webroot/package.json" }}
+                  paths:
+                      - app/webroot/node_modules
+            - run: mysql -h 127.0.0.1 -u root -e "CREATE DATABASE IF NOT EXISTS circle_default DEFAULT CHARSET utf8"
+            - run: mysql -h 127.0.0.1 -u root -e "GRANT ALL PRIVILEGES ON circle_default.* TO circleci@'%' IDENTIFIED BY 'circleci';"
+            #- run: mysql -h 127.0.0.1 -u root -e 'SET GLOBAL sql_mode=`ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION`'
+            - run: sh app/Console/cake clear_cache
+            - run: app/Console/cake Migrations.migration run all
+            - run: app/Console/cake seeds
+            - run: app/Console/cake acl create aco root controllers
+            - run: app/Console/cake AclExtras.AclExtras aco_sync
+            - run: app/Console/cake set_acl main
+            - run: cd app/Test/Case && ls **/*.php | grep -v Controller | circleci tests split | xargs php ./generateTestSuite.php
+            - run: cat app/Test/Case/ParallelTestSuiteTest.php
+            - run: app/Console/cake test app ParallelTestSuite
+            - run: cd app/webroot && npm run build
+            - run: cd app/webroot && npm run test
+            - store_test_results:
+                  path: /tmp/circleci-test-results
+            - store_artifacts:
+                  path: /tmp/circleci-artifacts
+            - store_artifacts:
+                  path: /tmp/circleci-test-results

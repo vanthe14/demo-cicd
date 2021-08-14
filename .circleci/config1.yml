@@ -1,0 +1,35 @@
+# PHP CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-php/ for more details
+#
+version: 2
+jobs:
+    build:
+        docker:
+            - image: circleci/php:7.3-node-browsers
+
+        working_directory: ~/repo
+
+        steps:
+            - checkout
+            - run: composer global require "squizlabs/php_codesniffer=*"
+            # Download and cache dependencies
+            - restore_cache:
+                  keys:
+                      - v1-dependencies-{{ checksum "composer.json" }}
+                      # fallback to using the latest cache if no exact match is found
+                      - v1-dependencies-
+
+            - run: composer install -n --prefer-dist
+
+            - save_cache:
+                  paths:
+                      - ./vendor
+                  key: v1-dependencies-{{ checksum "composer.json" }}
+
+            # run tests!
+#            - run: vendor/squizlabs/php_codesniffer/bin/phpcs --ignore=config,vendor,bootstrap/cache/,storage,database,*.js,*.css,public/index.php,*.blade.php,server.php --standard=PSR12 ./
+            - run: |
+                    if [ $(git diff --name-only origin/developer...HEAD -- '*.php') ]; then
+                        vendor/squizlabs/php_codesniffer/bin/phpcs --ignore=config,vendor,bootstrap/cache/,storage,database,*.js,*.css,public/index.php,*.blade.php,server.php --standard=rulesets/phpcs.xml $(git diff --name-only origin/developer...HEAD -- '*.php')
+                    fi
