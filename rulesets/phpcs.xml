@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<ruleset name="peraichi coding standard">
+    <description>Customization PSR-12 coding-conventions.</description>
+    <rule ref="PSR12"/>
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="160"/>
+            <property name="absoluteLineLimit" value="200"/>
+        </properties>
+    </rule>
+</ruleset> 
