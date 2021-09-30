@@ -14,4 +14,8 @@ class FeatureA extends Controller
     public function chucnangB() {
 
     }
+
+    public function chucnangmaster() {
+
+    }
 }
