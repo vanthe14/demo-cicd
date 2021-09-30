@@ -24,6 +24,10 @@ class FeatureA extends Controller
 
     }
 
+    public function chucnang1add() {
+        
+    }
+
     public function chucnang1() {
         
     }
