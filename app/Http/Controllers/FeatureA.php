@@ -13,6 +13,7 @@ class FeatureA extends Controller
 
     public function chucnangB() {
 
+        $a = "edit by review";
     }
 
     public function chucnangmaster() {
