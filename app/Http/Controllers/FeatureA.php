@@ -9,6 +9,6 @@ class FeatureA extends Controller
     //
     public function validate(Request $request, array $rules, array $messages = [], array $customAttributes = [])
     {
-        $a ="12345;
+        $a ="12345";
     }
 }
